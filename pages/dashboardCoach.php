@@ -83,7 +83,7 @@ session_start();
       <!-- Planning (dummy) -->
       <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
         <div class="flex items-center justify-between gap-3">
-          <h3 class="text-lg font-semibold">Planning (prochains créneaux)</h3>
+          <h3 class="text-lg font-semibold">Mes Reservations</h3>
           <a class="text-sm text-indigo-300 hover:underline" href="disponibilites.php">Gérer</a>
         </div>
 
@@ -94,6 +94,7 @@ session_start();
               <p class="text-sm text-slate-400">18:00 → 19:00</p>
             </div>
             <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 text-xs">Libre</span>
+            <button>x</button>
           </div>
 
           <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between">

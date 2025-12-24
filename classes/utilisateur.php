@@ -73,14 +73,14 @@ class Utilisateur{
         return $this->pdo->lastInsertId();
     }
 
-    public function login(){
+    public function login($email, $password){
 
         $sql = "SELECT * FROM users WHERE email = :email";
 
         $stmt = $this->pdo->prepare($sql);
 
         $stmt->execute(
-            [':email' => $this->email]
+            [':email' => $email]
         );
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -88,7 +88,7 @@ class Utilisateur{
         if (!$user) {
             return false;
         }
-        if (!password_verify($this->password, $user['mot_de_passe'])) {
+        if (!password_verify($password, $user['mot_de_passe'])) {
             return false;
         }
 
