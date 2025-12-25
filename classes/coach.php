@@ -14,6 +14,14 @@ class Coacha{
         $this->pdo = $pdo;
     }
 
+    public function getiduser(){
+        $this->iduser;
+    }
+
+    public function setiduser($iduser){
+        $this->iduser = $iduser;
+    }
+
     public function getspecialite(){
         $this->disipline;
     }
@@ -44,12 +52,14 @@ class Coacha{
                 VALUES (:user_id, :specialite, :experiences, :bio)";
 
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([
+        $stmt->execute([
             ':user_id' => $this->iduser,
             ':specialite' => $this->disipline,
             ':experiences' => $this->experience,
             ':bio' => $this->description
         ]);
+
+        return $stmt->fetch(pdo::FETCH_ASSOC);
     }
 }
 

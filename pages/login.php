@@ -24,6 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['nom'] = $user['nom'];
 
         if ($user['role'] === 'coach') {
+            $idcoach = $userlogin->idcoach($_SESSION['id_user']);
+
+            $_SESSION['idcoach'] = $idcoach['id_coach'];
             header("Location: dashboardCoach.php");
             exit;
         } else {

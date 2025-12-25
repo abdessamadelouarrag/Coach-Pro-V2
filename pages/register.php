@@ -1,9 +1,12 @@
 <?php
+session_start();
 
 require_once "../config/database.php";
 require_once "../classes/utilisateur.php";
 require_once "../classes/coach.php";
 require_once "../classes/sportif.php";
+
+
 
 $db = new Database();
 $pdo = $db->connect();
@@ -23,12 +26,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($user->getRole() === "coach") {
 
-        $discipline = $_POST['discipline'];
+        $disipline = $_POST['discipline'];
         $experience = $_POST['experience'];
         $description = $_POST['description'];
 
         $coach = new Coacha($pdo);
-        $coach->insertCoach($user_id, $discipline, $experience, $description);
+        $coach->setspecialite($disipline);
+        $coach->setexperience($experience);
+        $coach->setdescription($description);
+        $coach->setiduser($user_id);
+
+        $insertcoach = $coach->insertCoach();
+
+        if($insertcoach){
+            $_SESSION['id_coach'] = $insertcoach['id_coach'];
+        }
     }
 
     echo "connect good !!";

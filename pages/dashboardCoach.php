@@ -1,14 +1,63 @@
 <?php
 session_start();
+require_once "../classes/seance.php";
+
+$nomcoach =  $_SESSION['nom'];
+$rolecoach = $_SESSION['role'];
+$id_user = $_SESSION['id_user'];
+$id_coach = $_SESSION['idcoach'];
+// echo $id_coach;
+
+$db = new Database();
+$pdo = $db->connect();
+$dispoModel = new Seances($pdo);
+
+$error = "";
+$success = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $dispoModel = new Seances($pdo);
+
+    $date  = $_POST['date'] ?? '';
+    $heure_debut = $_POST['heure_debut'] ?? '';
+    $heure_fin   = $_POST['heure_fin'] ?? '';
+
+    $ok = $dispoModel->createDispo($date, $heure_debut, $heure_fin, $id_coach);
+
+    if ($ok) {
+        header("Location: dashboardCoach.php");
+        exit();
+    }
+}
+
+//parte fetch dispo
+$all = $dispoModel->fetchseances($id_coach);
+
+if(isset($_GET['delete'])){
+  $iddelet = $_GET['delete'];
+
+  $dlt = $dispoModel->deletseances($iddelet);
+
+  if($dlt){
+    header("Location: dashboardCoach.php");
+    exit();
+  }
+}
+
+
 ?>
 <!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <title>Dashboard Coach</title>
 </head>
+
 <body class="bg-slate-950 text-slate-100">
 
   <!-- Topbar -->
@@ -45,19 +94,18 @@ session_start();
       <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
         <p class="text-slate-400 text-sm">Bienvenue Coach 👋</p>
         <h2 class="text-2xl font-semibold mt-1">
-          name, gère tes disponibilités et tes réservations
+          <span class="font-bold text-3xl text-blue-600 uppercase">"<?= $nomcoach ?>"</span>, gère tes disponibilités et tes réservations
         </h2>
         <p class="text-slate-400 mt-2">
           Ajoute tes créneaux, confirme/refuse des demandes, et suis ton planning.
         </p>
 
         <div class="mt-5 flex flex-wrap gap-3">
-          <a href="disponibilite_add.php" class="px-4 py-2 rounded-xl bg-indigo-500 text-slate-950 font-medium hover:bg-indigo-400">
+          <button id="openModal"
+            class="px-4 py-2 rounded-xl bg-indigo-500 text-slate-950 font-medium hover:bg-indigo-400">
             + Ajouter une disponibilité
-          </a>
-          <a href="coach_reservations.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700">
-            Voir les réservations
-          </a>
+          </button>
+
         </div>
       </div>
 
@@ -88,30 +136,28 @@ session_start();
         </div>
 
         <div class="mt-4 space-y-3">
-          <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between">
-            <div>
-              <p class="font-medium">2025-12-26</p>
-              <p class="text-sm text-slate-400">18:00 → 19:00</p>
-            </div>
-            <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 text-xs">Libre</span>
-            <button>x</button>
-          </div>
+          <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between gap-4">
 
-          <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between">
+            <!-- Infos séance -->
             <div>
               <p class="font-medium">2025-12-28</p>
               <p class="text-sm text-slate-400">20:00 → 21:00</p>
             </div>
-            <span class="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/20 text-xs">Demandée</span>
+            <div class="flex items-center gap-3">
+              <span
+                class="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/20 text-xs">
+                Demandée
+              </span>
+              <button class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs hover:bg-emerald-500/25 transition">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-xs hover:bg-red-500/25 transition">
+                <i class="fas fa-x"></i>
+              </button>
+
+            </div>
           </div>
 
-          <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between">
-            <div>
-              <p class="font-medium">2026-01-02</p>
-              <p class="text-sm text-slate-400">10:00 → 11:00</p>
-            </div>
-            <span class="px-2 py-1 rounded-lg bg-slate-800 text-slate-200 border border-slate-700 text-xs">Planifiée</span>
-          </div>
         </div>
       </div>
 
@@ -125,12 +171,12 @@ session_start();
         <h3 class="text-lg font-semibold">Mon profil coach</h3>
 
         <div class="mt-4 flex items-center gap-3">
-          <div class="h-12 w-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
-            <span class="text-slate-200 font-semibold"></span>
+          <div class="h-12 w-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden">
+            <img src="https://i.pinimg.com/736x/96/36/c9/9636c978ed99793b3b11c04ba7fe9267.jpg" alt="">
           </div>
           <div>
-            <p class="font-medium"></p>
-            <p class="text-xs text-slate-400"></p>
+            <p class="font-medium">Nom : <?= $nomcoach ?></p>
+            <p class="text-xs text-slate-400">Disipline : </p>
           </div>
         </div>
 
@@ -146,22 +192,138 @@ session_start();
 
       <!-- Quick actions -->
       <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
-        <h3 class="text-lg font-semibold">Actions rapides</h3>
-        <div class="mt-4 grid gap-3">
-          <a href="disponibilite_add.php" class="px-4 py-2 rounded-xl bg-indigo-500 text-slate-950 font-medium hover:bg-indigo-400 text-center">
-            Ajouter disponibilité
-          </a>
-          <a href="coach_reservations.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-center">
-            Gérer réservations
-          </a>
-          <a href="coach_clients.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-center">
-            Mes sportifs
-          </a>
+        <h3 class="text-lg font-semibold">Mes Disponibilite</h3>
+        <div class="mt-4 grid gap-3 border-[1px] border-blue-700/20 p-3 rounded-xl">
+          <?php 
+          if(!empty($all)){
+            foreach($all as $row){
+                echo "
+                <div class='p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between gap-4'>
+                  <!-- Infos -->
+                  <div>
+                    <p class='font-medium text-slate-100'>". $row['date_seance'] ."</p>
+                    <p class='text-sm text-slate-400'>Heure Debut : <span>". $row['heure_debut'] ."</span></p>
+                    <p class='text-sm text-slate-400'>Heure fin : <span>". $row['heure_fin'] ."</p>
+                  </div>
+      
+                  <!-- Actions -->
+                  <div class='flex items-center gap-2'>
+                  <a href='?delete=" . $row['id_seances']."'>
+                    <button class='px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-xs hover:bg-red-500/25 transition'>
+                      <i class='fas fa-trash'></i>
+                    </button>
+                  </a>
+                  </div>
+                </div> ";
+              }
+          }
+          else{
+            echo "<p class='text-center text-gray-600'>----- Vide disponibilite -----</p>";
+          }
+          ?>
+
         </div>
       </div>
 
     </aside>
+
+    <!--place pop-->
+    <!-- Modal Backdrop -->
+    <div id="modalBackdrop"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
+
+      <!-- Modal Card -->
+      <div class="w-full max-w-lg mx-4 rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
+
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold">Ajouter une disponibilité</h3>
+            <p class="text-sm text-slate-400 mt-1">Choisis une date et un créneau horaire.</p>
+          </div>
+
+          <button id="closeModal"
+            class="h-10 w-10 rounded-2xl bg-slate-800 border border-slate-700 hover:bg-slate-700 flex items-center justify-center">
+            <i class="fas fa-x text-slate-200"></i>
+          </button>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" class="mt-6 space-y-4">
+
+          <!-- Date -->
+          <div>
+            <label class="block text-sm mb-1 text-slate-300">Date</label>
+            <input type="date" name="date" required
+              class="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+          </div>
+
+          <!-- Heures -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm mb-1 text-slate-300">Heure début</label>
+              <input type="time" name="heure_debut" required
+                class="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-sm mb-1 text-slate-300">Heure fin</label>
+              <input type="time" name="heure_fin" required
+                class="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <!-- Footer Buttons -->
+          <div class="pt-2 flex flex-col sm:flex-row gap-3 sm:justify-end">
+            <button type="button" id="cancelModal"
+              class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm">
+              Annuler
+            </button>
+
+            <button type="submit" name="add_dispo"
+              class="px-4 py-2 rounded-xl bg-indigo-500 text-slate-950 font-medium hover:bg-indigo-400 text-sm">
+              Enregistrer
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+
   </main>
 
+  <script>
+    const openModalBtn = document.getElementById('openModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    const closeBtn = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelModal');
+
+    function openModal() {
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeModal() {
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+    }
+
+    openModalBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // click outside modal to close
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+
+    // ESC to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+
 </body>
+
 </html>

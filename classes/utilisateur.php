@@ -94,6 +94,17 @@ class Utilisateur{
 
         return $user;
     }
+
+    public function idcoach($iduser){
+        $sql = "SELECT users.*, coaches.* from users inner join coaches on users.id_user = coaches.id_user where users.id_user = :iduser";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ":iduser" => $iduser,
+        ]);
+
+        return $stmt->fetch(pdo::FETCH_ASSOC);
+    }
 }
 
 // $email1 = new Utilisateur("nom", "prenom", "abde@gmail.com", "azerty1234", "role");
