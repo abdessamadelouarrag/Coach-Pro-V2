@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['id_user'] = $user['id_user'];
         $_SESSION['role'] = $user['role'];
         $_SESSION['nom'] = $user['nom'];
-
+        
         if ($user['role'] === 'coach') {
             $idcoach = $userlogin->idcoach($_SESSION['id_user']);
 

@@ -2,103 +2,60 @@
 
 require_once "../config/database.php";
 
-class Utilisateur {
+class Reservation
+{
 
-    protected PDO $pdo;
-    protected $id;
-    protected $nom;
-    protected $prenom;
-    protected $email;
-    protected $password;
-    protected $role;
+    private PDO $pdo;
 
-    public function __construct($pdo, $nom, $prenom ,$email, $password, $role)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
-        $this->nom = $nom;
-        $this->prenom = $prenom;
-        $this->email = $email;
-        $this->password = $password;
-        $this->role = $role;
     }
 
-    public function getnom(){
-        return $this->nom;
-    }
 
-    public function setnom($nom){
-        $this->nom = $nom;
-    }
+    public function allresrvation($id_sportif)
+    {
+        $sql = "SELECT u.nom AS nom_coach, c.specialite, r.date_reservation, r.heure_debut, r.status, r.id_reservation
+                FROM reservations r JOIN coaches c ON r.id_coach = c.id_coach 
+                JOIN users u ON c.id_user = u.id_user where id_sportif = :idsportif";
 
-    public function getPrenom(){
-        return $this->prenom;
-    }
-
-    public function setPrenom($prenom){
-        $this->prenom = $prenom;
-    }
-
-    public function getEmail(){
-        return $this->email;
-    }
-
-    public function setEmail($email){
-        $this->email = $email;
-    }
-
-    public function getPassword(){
-        return $this->password;
-    }
-
-    public function setPassword($password){
-        $this->password = $password;
-    }
-
-    public function getRole(){
-        return $this->role;
-    }
-
-    public function setRole($role){
-        $this->role = $role;
-    }
-
-    public function insertUser($nom, $prenom, $email, $password, $role){
-
-        $sql = "INSERT INTO users (nom, prenom, email, mot_de_passe, role) VALUES (:nom, :prenom,:email, :password, :role)";
         $stmt = $this->pdo->prepare($sql);
 
-
-        $insert =  $stmt->execute([
-            ':nom' => $nom,
-            ':prenom' => $prenom,
-            ':email' => $email,
-            ':password' => password_hash($password, PASSWORD_DEFAULT),
-            ':role' => $role
+        $stmt->execute([
+            ':idsportif' => $id_sportif,
         ]);
 
-        if (!$insert){
-            return false;
-        }
-
-        $userId = $this->pdo->lastInsertId();
-
-
-        if ($role === 'coach') {
-
-            $sqlCoach = "INSERT INTO coach (user_id, discipline, experience, description)
-                VALUES (:user_id, :discipline, :experience, :description)";
-
-            $stmtCoach = $this->pdo->prepare($sqlCoach);
-            $stmtCoach->execute([
-                ':user_id' => $userId,
-                ':discipline' => $_POST['discipline'],
-                ':experience' => $_POST['experience'],
-                ':description' => $_POST['description']
-            ]);
-        }
-        return $userId;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-}
+    public function reservationcoach($idcoach){
+        $sql = "SELECT * from reservations where id_coach = :idcoach";
+        $stmt = $this->pdo->prepare($sql);
 
-?>
+        $stmt->execute([
+            ":idcoach" => $idcoach,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updatestatus($idresrvation){
+        $sql = "UPDATE reservations set status = 'accepter' where id_reservation = :idreservation";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            ":idreservation" => $idresrvation,
+        ]);
+    }
+
+    public function refuserreservation($idresrvation){
+        $sql = "UPDATE reservations set status = 'refuser' where id_reservation = :idreservation";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            ":idreservation" => $idresrvation,
+        ]);
+    }
+}

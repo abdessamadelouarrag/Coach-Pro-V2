@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../classes/seance.php";
+require_once "../classes/coach.php";
+require_once "../classes/reservation.php";
 
 $nomcoach =  $_SESSION['nom'];
 $rolecoach = $_SESSION['role'];
@@ -17,34 +19,54 @@ $success = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $dispoModel = new Seances($pdo);
+  $dispoModel = new Seances($pdo);
 
-    $date  = $_POST['date'] ?? '';
-    $heure_debut = $_POST['heure_debut'] ?? '';
-    $heure_fin   = $_POST['heure_fin'] ?? '';
+  $date  = $_POST['date'] ?? '';
+  $heure_debut = $_POST['heure_debut'] ?? '';
+  $heure_fin   = $_POST['heure_fin'] ?? '';
 
-    $ok = $dispoModel->createDispo($date, $heure_debut, $heure_fin, $id_coach);
+  $ok = $dispoModel->createDispo($date, $heure_debut, $heure_fin, $id_coach);
 
-    if ($ok) {
-        header("Location: dashboardCoach.php");
-        exit();
-    }
-}
-
-//parte fetch dispo
-$all = $dispoModel->fetchseances($id_coach);
-
-if(isset($_GET['delete'])){
-  $iddelet = $_GET['delete'];
-
-  $dlt = $dispoModel->deletseances($iddelet);
-
-  if($dlt){
+  if ($ok) {
     header("Location: dashboardCoach.php");
     exit();
   }
 }
 
+//parte fetch dispo
+$all = $dispoModel->fetchseances($id_coach);
+
+if (isset($_GET['delete'])) {
+  $iddelet = $_GET['delete'];
+
+  $dlt = $dispoModel->deletseances($iddelet);
+
+  if ($dlt) {
+    header("Location: dashboardCoach.php");
+    exit();
+  }
+}
+
+$infocoach = new Coacha($pdo);
+$info = $infocoach->infocoach($id_coach);
+
+$allreservation = new Reservation($pdo);
+$resrvations = $allreservation->reservationcoach($id_coach);
+
+
+if (isset($_GET['accepter'])) {
+  $idreservation = $_GET['accepter'];
+
+  $allres = new Reservation($pdo);
+  $accepter = $allres->updatestatus($idreservation);
+}
+
+if (isset($_GET['refuser'])) {
+  $idreservations = $_GET['refuser'];
+
+  $allrese = new Reservation($pdo);
+  $accepter = $allrese->refuserreservation($idreservations);
+}
 
 ?>
 <!doctype html>
@@ -113,12 +135,12 @@ if(isset($_GET['delete'])){
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
           <p class="text-sm text-slate-400">Demandes</p>
-          <p class="text-3xl font-semibold mt-2">5</p>
+          <p class="text-3xl font-semibold mt-2"><?= count($resrvations) ?></p>
           <p class="text-xs text-slate-500 mt-1">Exemple</p>
         </div>
         <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
           <p class="text-sm text-slate-400">Séances confirmées</p>
-          <p class="text-3xl font-semibold mt-2">8</p>
+          <p class="text-3xl font-semibold mt-2">0</p>
           <p class="text-xs text-slate-500 mt-1">Exemple</p>
         </div>
         <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-5">
@@ -134,31 +156,38 @@ if(isset($_GET['delete'])){
           <h3 class="text-lg font-semibold">Mes Reservations</h3>
           <a class="text-sm text-indigo-300 hover:underline" href="disponibilites.php">Gérer</a>
         </div>
+        <?php foreach ($resrvations as $row): ?>
+          <div class="mt-4 space-y-3">
+            <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between gap-4">
+              <div>
+                <p class="font-medium"><?= $row['date_reservation'] ?></p>
+                <p class="text-sm text-slate-400"><?= $row['heure_debut'] ?> → <?= $row['heure_fin'] ?></p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2 py-1 rounded-lg border text-xs font-semibold
+              <?= $row['status'] === 'accepter'
+            ? 'bg-green-500/20 text-green-500 border-green-500/30'
+            : ($row['status'] === 'refuser'
+              ? 'bg-red-500/20 text-red-500 border-red-500/30'
+              : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30') ?>">
+                  <?= ucfirst($row['status']) ?>
+                </span>
 
-        <div class="mt-4 space-y-3">
-          <div class="p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between gap-4">
+                <button class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs hover:bg-emerald-500/25 transition">
+                  <a href="?accepter=<?= $row['id_reservation'] ?>">
+                    <i class="fas fa-check"></i>
+                  </a>
+                </button>
+                <button class="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-xs hover:bg-red-500/25 transition">
+                  <a href="?refuser=<?= $row['id_reservation'] ?>">
+                    <i class="fas fa-x"></i>
+                  </a>
+                </button>
 
-            <!-- Infos séance -->
-            <div>
-              <p class="font-medium">2025-12-28</p>
-              <p class="text-sm text-slate-400">20:00 → 21:00</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span
-                class="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/20 text-xs">
-                Demandée
-              </span>
-              <button class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs hover:bg-emerald-500/25 transition">
-                <i class="fas fa-check"></i>
-              </button>
-              <button class="px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-xs hover:bg-red-500/25 transition">
-                <i class="fas fa-x"></i>
-              </button>
-
+              </div>
             </div>
           </div>
-
-        </div>
+        <?php endforeach; ?>
       </div>
 
     </section>
@@ -176,17 +205,10 @@ if(isset($_GET['delete'])){
           </div>
           <div>
             <p class="font-medium">Nom : <?= $nomcoach ?></p>
-            <p class="text-xs text-slate-400">Disipline : </p>
+            <p class="text-xs text-slate-400">Disipline : <?= $info['specialite'] ?></p>
+            <p class="text-xs text-slate-400">Experiences : <?= $info['experiences'] ?></p>
+            <p class="text-xs text-slate-400">Bio : <?= $info['bio'] ?></p>
           </div>
-        </div>
-
-        <div class="mt-5 grid grid-cols-2 gap-3">
-          <a href="edit_profile.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm text-center">
-            Modifier
-          </a>
-          <a href="coach_settings.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm text-center">
-            Paramètres
-          </a>
         </div>
       </div>
 
@@ -194,30 +216,29 @@ if(isset($_GET['delete'])){
       <div class="rounded-3xl border border-slate-800 bg-slate-900/40 p-6">
         <h3 class="text-lg font-semibold">Mes Disponibilite</h3>
         <div class="mt-4 grid gap-3 border-[1px] border-blue-700/20 p-3 rounded-xl">
-          <?php 
-          if(!empty($all)){
-            foreach($all as $row){
-                echo "
+          <?php
+          if (!empty($all)) {
+            foreach ($all as $row) {
+              echo "
                 <div class='p-4 rounded-2xl border border-slate-800 bg-slate-950/30 flex items-center justify-between gap-4'>
                   <!-- Infos -->
                   <div>
-                    <p class='font-medium text-slate-100'>". $row['date_seance'] ."</p>
-                    <p class='text-sm text-slate-400'>Heure Debut : <span>". $row['heure_debut'] ."</span></p>
-                    <p class='text-sm text-slate-400'>Heure fin : <span>". $row['heure_fin'] ."</p>
+                    <p class='font-medium text-slate-100'>" . $row['date_seance'] . "</p>
+                    <p class='text-sm text-slate-400'>Heure Debut : <span>" . $row['heure_debut'] . "</span></p>
+                    <p class='text-sm text-slate-400'>Heure fin : <span>" . $row['heure_fin'] . "</p>
                   </div>
       
                   <!-- Actions -->
                   <div class='flex items-center gap-2'>
-                  <a href='?delete=" . $row['id_seances']."'>
+                  <a href='?delete=" . $row['id_seances'] . "'>
                     <button class='px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-xs hover:bg-red-500/25 transition'>
                       <i class='fas fa-trash'></i>
                     </button>
                   </a>
                   </div>
                 </div> ";
-              }
-          }
-          else{
+            }
+          } else {
             echo "<p class='text-center text-gray-600'>----- Vide disponibilite -----</p>";
           }
           ?>

@@ -61,6 +61,26 @@ class Coacha{
 
         return $stmt->fetch(pdo::FETCH_ASSOC);
     }
+
+    public function infocoach($idcoach){
+        $sql = "SELECT * FROM coaches where id_coach = :idcoach";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':idcoach' => $idcoach,
+        ]);
+
+        return $stmt->fetch(pdo::FETCH_ASSOC);
+    }
+
+    public function allcoaches(){
+        $sql = "SELECT users.nom, coaches.* from users inner join coaches on users.id_user = coaches.id_user";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(pdo::FETCH_ASSOC);
+    }
 }
 
 

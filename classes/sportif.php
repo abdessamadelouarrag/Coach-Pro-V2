@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "utilisateur.php";
 
-class Sportif{
+class Sportif extends Utilisateur{
     private PDO $pdo;
     protected $iduser;
 
@@ -21,14 +21,32 @@ class Sportif{
             ':id_user' => $this->iduser,
         ]);
     }
+
+    public function infosportif($iduser){
+        $sql = "SELECT * from users where id_user = :iduser";
+
+        $stmt =$this->pdo->prepare($sql);
+        $stmt->execute([
+            ':iduser' => $iduser,
+        ]);
+
+        return $stmt->fetch(pdo::FETCH_ASSOC);
+    }
+    
+    public function getSportifIdByUserId($iduser) {
+        $sql = "SELECT id_sportif FROM sportif WHERE id_user = :iduser";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':iduser' => $iduser]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            return $result['id_sportif'];
+        }
+        
+        $sqlInsert = "INSERT INTO sportif (id_user) VALUES (:iduser)";
+        $stmtInsert = $this->pdo->prepare($sqlInsert);
+        $stmtInsert->execute([':iduser' => $iduser]);
+        return $this->pdo->lastInsertId();
+    }
 }
-
-
-// $sportifnew = new sportif("samir ss", "samir@gmail.com", "azerty33");
-// echo $sportifnew->getName();
-// echo "<br>";
-// echo $sportifnew->getEmail();
-// echo "<br>";
-// echo $sportifnew->getPassword();
-
 ?>

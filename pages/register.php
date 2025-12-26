@@ -38,9 +38,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $insertcoach = $coach->insertCoach();
 
-        if($insertcoach){
+        if ($insertcoach) {
             $_SESSION['id_coach'] = $insertcoach['id_coach'];
         }
+    }
+    if ($user->getRole() === "sportif") {
+        $stmt = $pdo->prepare("INSERT INTO sportif (id_sportif) VALUES (?)");
+        $stmt->execute([$user_id]);
+
+        $_SESSION['id_sportif'] = $user_id;
     }
 
     echo "connect good !!";
