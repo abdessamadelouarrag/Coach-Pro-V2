@@ -8,6 +8,16 @@ require_once "../classes/coach.php";
 require_once "../classes/reservation.php";
 require_once "../classes/seance.php";
 
+if (!isset($_SESSION["id_user"])) {
+    header("Location: login.php");
+    exit();
+}
+
+if ($_SESSION["role"] !== "sportif") {
+    header("Location: dashboardCoach.php");
+    exit();
+}
+
 $nomusre = $_SESSION['nom'];
 $iduser = $_SESSION['id_user'];
 $roleuser = $_SESSION['role'];

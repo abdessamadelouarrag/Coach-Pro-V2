@@ -120,17 +120,16 @@ class Utilisateur
     }
 
     public function getCoachByCoachId(int $coachId)
-{
-    $sql = "SELECT u.*, c.*
+    {
+        $sql = "SELECT u.*, c.*
             FROM users u
             INNER JOIN coaches c ON c.id_user = u.id_user
             WHERE c.id_coach = :coachId";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([':coachId' => $coachId]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':coachId' => $coachId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 // $email1 = new Utilisateur("nom", "prenom", "abde@gmail.com", "azerty1234", "role");

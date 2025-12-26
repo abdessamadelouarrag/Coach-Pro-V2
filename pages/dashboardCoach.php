@@ -10,6 +10,18 @@ $id_user = $_SESSION['id_user'];
 $id_coach = $_SESSION['idcoach'];
 // echo $id_coach;
 
+// verification session
+if (!isset($_SESSION["id_user"])) {
+    header("Location: login.php");
+    exit();
+}
+
+// verification role
+if ($_SESSION["role"] !== "coach") {
+    header("Location: dashboardSportif.php");
+    exit();
+}
+
 $db = new Database();
 $pdo = $db->connect();
 $dispoModel = new Seances($pdo);
