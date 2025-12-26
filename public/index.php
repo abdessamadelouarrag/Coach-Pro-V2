@@ -21,10 +21,10 @@
       </div>
 
       <div class="flex gap-3">
-        <a href="login.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm">
+        <a href="/pages/login.php" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-sm">
           Login
         </a>
-        <a href="register.php" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-medium hover:bg-emerald-400">
+        <a href="/pages/register.php" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-medium hover:bg-emerald-400">
           Register
         </a>
       </div>
@@ -49,11 +49,11 @@
       </p>
 
       <div class="mt-8 flex flex-wrap gap-4">
-        <a href="coachs.php"
+        <a href="/pages/login.php"
            class="px-6 py-3 rounded-2xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 transition">
           Trouver un coach
         </a>
-        <a href="login.php"
+        <a href="/pages/login.php"
            class="px-6 py-3 rounded-2xl bg-slate-800 border border-slate-700 hover:bg-slate-700 transition">
           Se connecter
         </a>
